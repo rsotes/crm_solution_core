@@ -1,15 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Data.Entity;
+using System.Reflection;
+using InfraestructureConcrete;
+using InfraestructureConcrete.Repository;
+using Infrastructure;
+using Infrastructure.Repositories;
+using InfrastructureConcrete;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Services;
+using ServicesCommand.Handlers;
+using ServicesQuery.Handler;
 
 namespace CRMWebApi
 {
@@ -26,6 +31,33 @@ namespace CRMWebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddCors(options => options.AddPolicy("Default", builder =>
+            {
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            }));
+            services.AddScoped<DbContext, ProductsDBContext>();
+
+            services.AddMediatR(new Assembly[] { typeof(AddCategoryHandler).Assembly,
+                                                typeof(GetCategoryByIdHandler).Assembly});
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+
+            // TODO: Add service interfaces
+            services.AddScoped<CustomerService>();
+            services.AddScoped<CategoryService>();
+
+            /*services.AddAuthentication()
+                .AddJwtBearer*/
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
